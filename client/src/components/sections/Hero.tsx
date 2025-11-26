@@ -4,6 +4,13 @@ import { ArrowRight } from "lucide-react";
 import heroImage from "@assets/generated_images/luxury_flower_shop_hero_banner_with_pastel_blooms.png";
 
 export default function Hero() {
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
       {/* Background Image */}
@@ -35,10 +42,21 @@ export default function Hero() {
               From breathtaking wedding garlands to delicate floral jewellery and fresh bouquets, we bring your floral dreams to life with elegance and care.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Button size="lg" className="rounded-full px-8 text-lg h-14 bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
+              <Button 
+                size="lg" 
+                className="rounded-full px-8 text-lg h-14 bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
+                onClick={() => scrollToSection('gallery')}
+                data-testid="button-view-collection"
+              >
                 View Collection
               </Button>
-              <Button variant="outline" size="lg" className="rounded-full px-8 text-lg h-14 bg-white/10 backdrop-blur-md border-white/20 text-white hover:bg-white hover:text-foreground md:bg-transparent md:border-primary md:text-primary md:hover:bg-primary/10 transition-all">
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="rounded-full px-8 text-lg h-14 bg-white/10 backdrop-blur-md border-white/20 text-white hover:bg-white hover:text-foreground md:bg-transparent md:border-primary md:text-primary md:hover:bg-primary/10 transition-all"
+                onClick={() => scrollToSection('contact')}
+                data-testid="button-contact-us"
+              >
                 Contact Us <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
