@@ -4,18 +4,40 @@ import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
 
 export default function Contact() {
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm();
   const { toast } = useToast();
 
+  const submitContactMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch("/api/contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error("Failed to submit contact form");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Message Sent!",
+        description: "We'll get back to you as soon as possible.",
+      });
+      reset();
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: any) => {
-    console.log(data);
-    toast({
-      title: "Message Sent!",
-      description: "We'll get back to you as soon as possible.",
-    });
-    reset();
+    submitContactMutation.mutate(data);
   };
 
   return (
@@ -33,12 +55,14 @@ export default function Contact() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground/80">Name</label>
+                  <label className="text-sm font-medium text-foreground/80">Name *</label>
                   <Input 
-                    {...register("name")} 
+                    {...register("name", { required: "Name is required" })} 
                     placeholder="John Doe" 
                     className="rounded-xl bg-secondary/10 border-transparent focus:border-primary/30 h-12"
+                    data-testid="input-name"
                   />
+                  {errors.name && <p className="text-xs text-destructive">{errors.name.message as string}</p>}
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground/80">Phone</label>
@@ -46,31 +70,48 @@ export default function Contact() {
                     {...register("phone")} 
                     placeholder="+91 98765 43210" 
                     className="rounded-xl bg-secondary/10 border-transparent focus:border-primary/30 h-12"
+                    data-testid="input-phone"
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground/80">Email</label>
+                <label className="text-sm font-medium text-foreground/80">Email *</label>
                 <Input 
-                  {...register("email")} 
+                  {...register("email", { 
+                    required: "Email is required",
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      message: "Invalid email address"
+                    }
+                  })} 
                   type="email"
                   placeholder="john@example.com" 
                   className="rounded-xl bg-secondary/10 border-transparent focus:border-primary/30 h-12"
+                  data-testid="input-email"
                 />
+                {errors.email && <p className="text-xs text-destructive">{errors.email.message as string}</p>}
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground/80">Message</label>
+                <label className="text-sm font-medium text-foreground/80">Message *</label>
                 <Textarea 
-                  {...register("message")} 
+                  {...register("message", { required: "Message is required" })} 
                   placeholder="Tell us about your event or requirement..." 
                   className="rounded-xl bg-secondary/10 border-transparent focus:border-primary/30 min-h-[150px] resize-none p-4"
+                  data-testid="input-message"
                 />
+                {errors.message && <p className="text-xs text-destructive">{errors.message.message as string}</p>}
               </div>
 
-              <Button type="submit" size="lg" className="w-full rounded-full h-12 text-base font-medium">
-                Send Message
+              <Button 
+                type="submit" 
+                size="lg" 
+                className="w-full rounded-full h-12 text-base font-medium"
+                disabled={submitContactMutation.isPending}
+                data-testid="button-submit"
+              >
+                {submitContactMutation.isPending ? "Sending..." : "Send Message"}
               </Button>
             </form>
           </div>

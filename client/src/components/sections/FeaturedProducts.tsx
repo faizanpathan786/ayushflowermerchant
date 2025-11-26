@@ -3,45 +3,33 @@ import { ShoppingBag, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
-import bouquetImg from "@assets/generated_images/pink_peony_and_rose_bouquet.png";
-
-const products = [
-  {
-    id: 1,
-    name: "Blushing Rose Bouquet",
-    price: "₹1,299",
-    image: bouquetImg,
-    description: "A romantic arrangement of soft pink roses and white lilies.",
-    tag: "Bestseller"
-  },
-  {
-    id: 2,
-    name: "Royal Orchid Vase",
-    price: "₹2,499",
-    image: "https://images.unsplash.com/photo-1566652642202-0514a248a2e8?auto=format&fit=crop&q=80&w=800",
-    description: "Exotic purple orchids arranged in a premium glass vase.",
-    tag: "New"
-  },
-  {
-    id: 3,
-    name: "Sunshine Basket",
-    price: "₹899",
-    image: "https://images.unsplash.com/photo-1591886960571-74d43a9d4166?auto=format&fit=crop&q=80&w=800",
-    description: "Bright sunflowers and yellow daisies in a rustic basket.",
-    tag: null
-  },
-  {
-    id: 4,
-    name: "Vintage Peony Bunch",
-    price: "₹1,599",
-    image: "https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&q=80&w=800",
-    description: "Classic peonies wrapped in eco-friendly kraft paper.",
-    tag: "Premium"
-  }
-];
+import { useQuery } from "@tanstack/react-query";
 
 export default function FeaturedProducts() {
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ["products", "featured"],
+    queryFn: async () => {
+      const response = await fetch("/api/products/featured");
+      if (!response.ok) throw new Error("Failed to fetch products");
+      return response.json();
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <section className="py-20 md:py-32 bg-white">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="text-center">
+            <div className="animate-pulse">
+              <div className="h-8 bg-secondary rounded w-48 mx-auto mb-4"></div>
+              <div className="h-12 bg-secondary rounded w-64 mx-auto"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-20 md:py-32 bg-white">
       <div className="container mx-auto px-4 md:px-6">
@@ -59,7 +47,7 @@ export default function FeaturedProducts() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {products.map((product, index) => (
+          {products.map((product: any, index: number) => (
             <motion.div
               key={product.id}
               initial={{ opacity: 0, y: 20 }}

@@ -2,32 +2,40 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-// Import images (reusing for now, normally would have more)
-import garlandImg from "@assets/generated_images/traditional_wedding_garland.png";
-import jewelleryImg from "@assets/generated_images/floral_jewellery_set.png";
-import decorImg from "@assets/generated_images/elegant_event_flower_decoration.png";
-import bouquetImg from "@assets/generated_images/pink_peony_and_rose_bouquet.png";
+import { useQuery } from "@tanstack/react-query";
 
 const categories = ["All", "Bouquets", "Garlands", "Jewellery", "Decor"];
-
-const galleryItems = [
-  { id: 1, category: "Bouquets", image: bouquetImg, title: "Pink Peony Love" },
-  { id: 2, category: "Garlands", image: garlandImg, title: "Traditional Rose Mala" },
-  { id: 3, category: "Jewellery", image: jewelleryImg, title: "Haldi Floral Set" },
-  { id: 4, category: "Decor", image: decorImg, title: "Wedding Stage" },
-  { id: 5, category: "Bouquets", image: "https://images.unsplash.com/photo-1591886960571-74d43a9d4166?auto=format&fit=crop&q=80&w=800", title: "Sunflower Joy" },
-  { id: 6, category: "Decor", image: "https://images.unsplash.com/photo-1519225421980-715cb0202128?auto=format&fit=crop&q=80&w=800", title: "Aisle Decoration" },
-  { id: 7, category: "Garlands", image: "https://images.unsplash.com/photo-1605218427368-351816b5b9e1?auto=format&fit=crop&q=80&w=800", title: "Jasmine Garland" },
-  { id: 8, category: "Jewellery", image: "https://images.unsplash.com/photo-1624823183483-484361c0935d?auto=format&fit=crop&q=80&w=800", title: "Floral Maang Tikka" },
-];
 
 export default function Gallery() {
   const [activeCategory, setActiveCategory] = useState("All");
 
+  const { data: allItems = [], isLoading } = useQuery({
+    queryKey: ["gallery"],
+    queryFn: async () => {
+      const response = await fetch("/api/gallery");
+      if (!response.ok) throw new Error("Failed to fetch gallery items");
+      return response.json();
+    },
+  });
+
   const filteredItems = activeCategory === "All" 
-    ? galleryItems 
-    : galleryItems.filter(item => item.category === activeCategory);
+    ? allItems 
+    : allItems.filter((item: any) => item.category === activeCategory);
+
+  if (isLoading) {
+    return (
+      <section className="py-20 md:py-32 bg-white">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="text-center">
+            <div className="animate-pulse">
+              <div className="h-8 bg-secondary rounded w-48 mx-auto mb-4"></div>
+              <div className="h-12 bg-secondary rounded w-64 mx-auto"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-20 md:py-32 bg-white">
@@ -52,6 +60,7 @@ export default function Gallery() {
                   ? "bg-primary text-white border-primary shadow-lg shadow-primary/25"
                   : "bg-transparent text-muted-foreground border-transparent hover:bg-secondary hover:text-foreground"
               )}
+              data-testid={`filter-${cat.toLowerCase()}`}
             >
               {cat}
             </button>
@@ -61,7 +70,7 @@ export default function Gallery() {
         {/* Grid */}
         <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <AnimatePresence>
-            {filteredItems.map((item) => (
+            {filteredItems.map((item: any) => (
               <motion.div
                 key={item.id}
                 layout
@@ -70,6 +79,7 @@ export default function Gallery() {
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.3 }}
                 className="group relative aspect-[4/5] rounded-xl overflow-hidden cursor-pointer"
+                data-testid={`gallery-item-${item.id}`}
               >
                 <img
                   src={item.image}
@@ -89,11 +99,13 @@ export default function Gallery() {
           </AnimatePresence>
         </motion.div>
         
-        <div className="text-center mt-12">
+        {filteredItems.length > 0 && (
+          <div className="text-center mt-12">
             <Button variant="outline" size="lg" className="rounded-full px-8 border-primary/30 text-foreground hover:bg-primary hover:text-white">
-                Load More Photos
+              Load More Photos
             </Button>
-        </div>
+          </div>
+        )}
       </div>
     </section>
   );
