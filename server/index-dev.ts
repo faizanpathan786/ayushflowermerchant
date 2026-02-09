@@ -1,3 +1,4 @@
+import "dotenv/config";
 import fs from "node:fs";
 import { type Server } from "node:http";
 import path from "node:path";
@@ -36,6 +37,11 @@ export async function setupVite(app: Express, server: Server) {
   app.use(vite.middlewares);
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
+
+    // Skip API routes - let them be handled by the API routes
+    if (url.startsWith('/api')) {
+      return next();
+    }
 
     try {
       const clientTemplate = path.resolve(

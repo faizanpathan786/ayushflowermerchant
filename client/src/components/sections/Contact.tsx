@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
+import emailjs from '@emailjs/browser';
 
 export default function Contact() {
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
@@ -12,12 +13,33 @@ export default function Contact() {
 
   const submitContactMutation = useMutation({
     mutationFn: async (data: any) => {
+      // Save to database
       const response = await fetch("/api/contacts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       if (!response.ok) throw new Error("Failed to submit contact form");
+      
+      // Send email via EmailJS
+      try {
+        await emailjs.send(
+          import.meta.env.VITE_EMAILJS_SERVICE_ID,
+          import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+          {
+            from_name: data.name,
+            from_email: data.email,
+            phone: data.phone || 'Not provided',
+            message: data.message,
+            to_email: 'sidhantshinde1449@gmail.com',
+          },
+          import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+        );
+      } catch (emailError) {
+        console.error('EmailJS error:', emailError);
+        // Don't fail the whole submission if email fails
+      }
+      
       return response.json();
     },
     onSuccess: () => {
@@ -134,8 +156,9 @@ export default function Contact() {
                  <div>
                    <h5 className="font-semibold text-lg mb-1">Location</h5>
                    <p className="text-muted-foreground text-sm">
-                     123 Flower Market Street,<br />
-                     Opp. City Mall, Mumbai
+                     Opposite to Bhairavanath Mandir,<br />
+                     Shop No. 2, Kondhwa Khurd,<br />
+                     Pune 48
                    </p>
                  </div>
                </div>
@@ -147,8 +170,8 @@ export default function Contact() {
                  <div>
                    <h5 className="font-semibold text-lg mb-1">Call Us</h5>
                    <p className="text-muted-foreground text-sm">
-                     +91 98765 43210 <br />
-                     +91 98765 43211
+                     +91 86259 13742 <br />
+                     +91 95959 95907
                    </p>
                  </div>
                </div>
@@ -160,8 +183,7 @@ export default function Contact() {
                  <div>
                    <h5 className="font-semibold text-lg mb-1">Email</h5>
                    <p className="text-muted-foreground text-sm">
-                     orders@ayushflower.com <br />
-                     info@ayushflower.com
+                     sidhantshinde1449@gmail.com
                    </p>
                  </div>
                </div>
@@ -183,7 +205,7 @@ export default function Contact() {
              {/* Map Embed Placeholder */}
              <div className="h-64 w-full bg-muted rounded-2xl overflow-hidden relative border border-border">
                 <iframe 
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3770.745482320067!2d72.87765531490114!3d19.07598398708795!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c8dbb8d2f47f%3A0x524890209b9550d!2sDadar%20Flower%20Market!5e0!3m2!1sen!2sin!4v1645692841234!5m2!1sen!2sin" 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3784.4!2d73.8964!3d18.4621!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTjCsDI3JzQzLjYiTiA3M8KwNTMnNDcuMCJF!5e0!3m2!1sen!2sin!4v1645692841234!5m2!1sen!2sin&q=Bhairavanath+Mandir+Kondhwa+Khurd+Pune" 
                   width="100%" 
                   height="100%" 
                   style={{border:0}} 
